@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "title": "PDF Reader",
+    "description": "One conversation for the whole document: select text or box a region to ask, annotate, and save answers as files."
+  },
+  "panel": {
+    "title": "PDF Reader"
+  }
+}

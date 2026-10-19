@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="PDF reader">
+  <defs>
+    <linearGradient id="pr-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f6dd0"/>
+      <stop offset="1" stop-color="#1f3f86"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#pr-bg)"/>
+  <path d="M17 14.5A2.5 2.5 0 0 1 19.5 12H40l7 7v20.5a2.5 2.5 0 0 1-2.5 2.5h-25A2.5 2.5 0 0 1 17 39.5z" fill="#f7fafc" opacity="0.96"/>
+  <path d="M40 12v7h7" fill="none" stroke="#a9c1ee" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M23 24h14M23 29h10" stroke="#6f8dbd" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M32 33h16a5 5 0 0 1 5 5v6a5 5 0 0 1-5 5h-7l-5 4v-4h-4a5 5 0 0 1-5-5v-6a5 5 0 0 1 5-5z" fill="#2f6dd0" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round"/>
+  <circle cx="37" cy="41" r="1.7" fill="#ffffff"/>
+  <circle cx="43" cy="41" r="1.7" fill="#ffffff"/>
+  <circle cx="49" cy="41" r="1.7" fill="#ffffff"/>
+</svg>

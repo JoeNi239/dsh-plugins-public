@@ -1,0 +1,4 @@
+- insert:
+    - id: trade-practice
+      name: '@local/trade-practice'
+      config: {}

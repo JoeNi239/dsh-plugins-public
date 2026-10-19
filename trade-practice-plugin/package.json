@@ -1,0 +1,48 @@
+{
+  "name": "@local/trade-practice",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CSV-backed CFD practice charts with bar-by-bar replay (XAUUSD, GBPUSD).",
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/test-trade-sim.cjs && node scripts/test-drawing-tools.mjs && node scripts/test-ask-prompt.mjs && node scripts/test-assistant-loop.mjs && node scripts/test-agent-manager.mjs && node scripts/test-chart-data-tool.mjs"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "lib/monthlyCsv.js",
+    "lib/aggregateBars.js",
+    "lib/agentManager.js",
+    "lib/chartDataTools.js",
+    "lib/drawingTools.js",
+    "lib/modelCatalogue.js",
+    "lib/toolDefs.js",
+    "lib/histdataRunner.js",
+    "lib/updateCheck.js",
+    "client/dataUpdate.cjs",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "scripts/fetch_m1.py",
+    "scripts/run-histdata-backfill.ps1",
+    "scripts/watch-fetch.ps1",
+    "scripts/month-store.mjs",
+    "scripts/csv-util.mjs"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": []
+    }
+  }
+}
