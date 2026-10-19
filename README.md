@@ -10,8 +10,6 @@
 trade-practice-plugin/     # 交易练习插件（宿主 + 界面 + 数据抓取脚本 + 测试）
 pdf-reader-plugin/         # PDF 阅读插件（宿主 + 界面 + Python 解析进程）
 setup.ps1                  # 新电脑一键注册插件 + 下载行情数据 + 安装 PyMuPDF
-replace.ps1                # 已装旧版的电脑：原地替换（备份 + 升级 + 触发热重载）
-ONE-PROMPT.md              # 发给另一台 DSH 的"一句话升级"提示词
 README.md
 ```
 
@@ -34,21 +32,6 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 然后重启 DSH：左侧栏底部出现「PDF 阅读」，主面板打开 Trade Practice 即有历史 K 线。
 
 > 如果 `default-workspace` 已存在且非空，`git clone` 会失败。可以先克隆到别处再复制内容；`setup.ps1` 按自身所在目录定位插件，不要求必须是工作区根目录。
-
-## 已有安装的电脑：一句话升级
-
-如果那台电脑**已经装过旧版**这两个插件，不用重新 clone：把 [ONE-PROMPT.md](ONE-PROMPT.md) 里那段话原样粘进那台电脑的 DSH，它会自动下载最新 zip 并运行 `replace.ps1`：备份旧目录 → 替换 `trade-practice-plugin`/`pdf-reader-plugin` → 注册 profile → `pnpm install` → 下载行情数据 → 安装 PyMuPDF → 轻触 profile 触发 DSH 热重载，最后汇报两个 health 接口。
-
-手动跑同一套流程：
-
-```powershell
-# 先取得 main 分支 zip（或任意方式拿到本仓库）
-irm https://github.com/JoeNi239/dsh-plugins-public/archive/refs/heads/main.zip -OutFile dsh-plugins.zip
-Expand-Archive dsh-plugins.zip -DestinationPath .
-powershell -NoProfile -ExecutionPolicy Bypass -File .\dsh-plugins-public-main\replace.ps1 -Workspace "<工作区绝对路径>"
-```
-
-旧版本会保留在 `.plugin-backup\<时间戳>\`，回滚方式见 [ONE-PROMPT.md](ONE-PROMPT.md)。
 
 ### setup.ps1 参数
 
