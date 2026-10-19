@@ -76,8 +76,8 @@ Expand-Archive data.zip -DestinationPath .trade-practice\data -Force
 ## 数据说明
 
 - 路径：`.trade-practice/data/<品种>/1m/YYYY-MM.csv`，`openTime` 为 **MT5 服务器时间**（GMT+2/GMT+3），直接复制即可。
+- `setup.ps1` 会从 `%USERPROFILE%\.dsh\storages\workspace.json` 读出 DSH 默认工作区，把数据解压到 `<工作区>\.trade-practice\data`——即使仓库克隆在别处也能对上（插件始终按当前工作区找数据）。
 - 带数据 = 打开 Trade Practice 立刻有图；没有数据也能启动，在面板点「更新数据」或运行 `trade-practice-plugin/scripts/fetch_m1.py` 拉取。
-- 插件按当前工作区解析数据目录，所以数据放在工作区 `.trade-practice/data` 下即可。
 
 ## 检查安装
 

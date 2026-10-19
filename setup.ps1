@@ -102,8 +102,33 @@ if (-not $SkipInstall -and -not $DryRun) {
   }
 }
 
+function Get-DataRoot {
+  # Trade Practice resolves its CSV directory from the active DSH workspace, so
+  # data must live there even when this repo was cloned somewhere else.
+  $store = Join-Path $env:USERPROFILE '.dsh\storages\workspace.json'
+  if (Test-Path $store) {
+    try {
+      $data = Get-Content $store -Raw -Encoding utf8 | ConvertFrom-Json
+      $defaultId = $data.global.defaultWorkspaceId
+      $workspaces = $data.tables.workspaces
+      $chosen = $null
+      if ($defaultId -and $workspaces.PSObject.Properties[$defaultId]) {
+        $chosen = $workspaces.PSObject.Properties[$defaultId].Value
+      }
+      if (-not $chosen) {
+        $first = $workspaces.PSObject.Properties | Select-Object -First 1
+        if ($first) { $chosen = $first.Value }
+      }
+      if ($chosen -and $chosen.path -and (Test-Path $chosen.path)) {
+        return (Join-Path $chosen.path '.trade-practice\data')
+      }
+    } catch { }
+  }
+  return (Join-Path $RepoRoot '.trade-practice\data')
+}
+
 if (-not $SkipData -and -not $DryRun) {
-  $dataDir = Join-Path $RepoRoot '.trade-practice\data'
+  $dataDir = Get-DataRoot
   if (Test-Path (Join-Path $dataDir 'XAUUSD')) {
     Step "行情数据已存在，跳过下载（$dataDir）"
   } else {
