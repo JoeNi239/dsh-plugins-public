@@ -300,7 +300,11 @@ function startWorker(candidateIndex) {
   return new Promise((resolvePromise, rejectPromise) => {
     let settled = false
     const args = command === 'py' ? ['-3', script] : [script]
-    const proc = spawn(command, args, { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true })
+    const proc = spawn(command, args, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      windowsHide: true,
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+    })
     const state = {
       proc,
       pending: new Map(),
@@ -1303,7 +1307,7 @@ function pickPdfFile() {
     '$dialog.CheckFileExists = $true',
     '$dialog.Multiselect = $false',
     '$result = $dialog.ShowDialog($owner)',
-    'if ($result -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Out.WriteLine($dialog.FileName) }',
+    'if ($result -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Out.WriteLine([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($dialog.FileName))) }',
   ].join('; ')
   return new Promise((resolvePromise) => {
     let settled = false
@@ -1333,7 +1337,12 @@ function pickPdfFile() {
     })
     proc.on('close', () => {
       clearTimeout(timer)
-      finish({ ok: true, path: out.trim() || null, error: err ? err.slice(-300) : null })
+      const encodedPath = out.trim()
+      let path = null
+      try {
+        if (encodedPath) path = Buffer.from(encodedPath, 'base64').toString('utf8')
+      } catch {}
+      finish({ ok: true, path, error: err ? err.slice(-300) : null })
     })
   })
 }

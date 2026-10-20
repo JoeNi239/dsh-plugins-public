@@ -589,35 +589,21 @@ window.__ModuleLoader__.load({
       )
     }
 
-    function FilePicker({ onClose, onOpen, recent, onImport, onForget }) {
-      const [listing, setListing] = useState(null)
+    function FilePicker({ onClose, onOpen, recent, onForget }) {
       const [error, setError] = useState('')
       const [busy, setBusy] = useState(false)
-      const [manual, setManual] = useState('')
-      const inputRef = useRef(null)
-
-      const load = useCallback(async (path) => {
+      const chooseNewPdf = async () => {
         setBusy(true)
         setError('')
         try {
-          const payload = await api.browse(path)
-          setListing(payload)
+          const result = await api.pickFile()
+          if (result && result.path) onOpen(result.path)
+          else if (result && result.error) setError(result.error)
         } catch (problem) {
-          setError(problem.message)
+          setError(problem && problem.message ? problem.message : '无法打开 Windows 文件选择框')
         } finally {
           setBusy(false)
         }
-      }, [])
-
-
-      useEffect(() => {
-        if (inputRef.current) inputRef.current.focus()
-      }, [])
-
-      const submitManual = () => {
-        const value = manual.trim().replace(/^"|"$/g, '')
-        if (!value) return
-        onOpen(value)
       }
 
       return h(
@@ -629,97 +615,30 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'pdfr-modal-head' },
-            h('span', { className: 'pdfr-modal-title' }, 'PDF'),
+            h('span', { className: 'pdfr-modal-title' }, '选择 PDF'),
             h('button', { type: 'button', className: 'pdfr-iconbtn', onClick: onClose, title: '关闭' }, h(Icon, { name: 'close' })),
           ),
           h(
             'div',
-            { className: 'pdfr-modal-path' },
-            h('span', { className: 'pdfr-path-text', title: listing ? listing.path || '此电脑' : '' }, listing ? listing.path || '此电脑' : '选择 PDF'),
-            listing && listing.parent
-              ? h('button', { type: 'button', className: 'pdfr-minibtn', onClick: () => load(listing.parent) }, '上一级')
-              : null,
-          ),
-          h(
-            'div',
             { className: 'pdfr-modal-list' },
-            busy ? h('div', { className: 'pdfr-muted pdfr-pad' }, '…') : null,
-            error ? h('div', { className: 'pdfr-error pdfr-pad' }, error) : null,
-            !listing && !busy ? h('div', { className: 'pdfr-muted pdfr-pad' }, '点「浏览…」用系统对话框选择，或直接把 PDF 拖进面板。') : null,
-            listing
-              ? listing.dirs.map((dir) =>
-                  h(
-                    'button',
-                    { type: 'button', key: `d:${dir.path}`, className: 'pdfr-row', onClick: () => load(dir.path) },
-                    h('span', { className: 'pdfr-row-icon' }, h(Icon, { name: 'folder' })),
-                    h('span', { className: 'pdfr-row-name' }, dir.name),
-                  ),
-                )
-              : null,
-            listing
-              ? listing.pdfs.map((file) =>
-                  h(
-                    'button',
-                    { type: 'button', key: `f:${file.path}`, className: 'pdfr-row pdfr-row-file', onClick: () => onOpen(file.path) },
-                    h('span', { className: 'pdfr-row-icon' }, h(Icon, { name: 'file' })),
-                    h('span', { className: 'pdfr-row-name' }, file.name),
-                    h('span', { className: 'pdfr-row-meta' }, `${Math.max(1, Math.round(file.size / 1024))} KB`),
-                  ),
-                )
-              : null,
-            !busy && listing && !listing.dirs.length && !listing.pdfs.length ? h('div', { className: 'pdfr-muted pdfr-pad' }, '这个目录里没有 PDF') : null,
-            listing && !listing.path && recent.length
+            recent.length
               ? h(
                   'div',
                   { className: 'pdfr-recent' },
                   h('div', { className: 'pdfr-section-label' }, '最近打开'),
                   h(RecentList, { items: recent, onOpen, onForget }),
                 )
-              : null,
+              : h('div', { className: 'pdfr-muted pdfr-pad' }, '还没有最近打开的 PDF'),
+            error ? h('div', { className: 'pdfr-error pdfr-pad' }, error) : null,
           ),
           h(
             'div',
-            { className: 'pdfr-modal-foot' },
-            h('input', {
-              ref: inputRef,
-              className: 'pdfr-input',
-              placeholder: '也可以直接输入 PDF 的完整路径',
-              value: manual,
-              onChange: (event) => setManual(event.target.value),
-              onKeyDown: (event) => {
-                if (event.key === 'Enter') submitManual()
-                if (event.key === 'Escape') onClose()
-              },
-            }),
+            { className: 'pdfr-modal-foot pdfr-modal-actions' },
             h(
               'button',
-              {
-                type: 'button',
-                className: 'pdfr-minibtn',
-                onClick: async () => {
-                  try {
-                    const result = await api.pickFile()
-                    if (result && result.path) onOpen(result.path)
-                  } catch {}
-                },
-              },
-              '浏览…',
+              { type: 'button', className: 'pdfr-btn pdfr-btn-primary', onClick: chooseNewPdf, disabled: busy },
+              '选择新 PDF',
             ),
-            h(
-              'label',
-              { className: 'pdfr-minibtn pdfr-upload' },
-              '上传…',
-              h('input', {
-                type: 'file',
-                accept: 'application/pdf,.pdf',
-                style: { display: 'none' },
-                onChange: (event) => {
-                  const file = event.target.files && event.target.files[0]
-                  if (file) onImport(file)
-                },
-              }),
-            ),
-            h('button', { type: 'button', className: 'pdfr-btn pdfr-btn-primary', onClick: submitManual }, '打开'),
           ),
         ),
       )
@@ -1031,18 +950,8 @@ window.__ModuleLoader__.load({
       )
 
       const chooseFile = useCallback(async () => {
-        try {
-          const result = await api.pickFile()
-          if (result && result.path) {
-            openDoc(result.path)
-            return
-          }
-          if (result && result.unavailable) setPicker(true)
-        } catch (problem) {
-          setToast(problem && problem.message ? problem.message : '无法打开系统文件选择框')
-          setPicker(true)
-        }
-      }, [openDoc])
+        setPicker(true)
+      }, [])
 
       // Remove a document from "最近打开" together with every conversation
       // stored for it. The PDF file and its annotations stay untouched.
@@ -3298,7 +3207,7 @@ window.__ModuleLoader__.load({
             )
           : null,
         toast ? h('div', { className: 'pdfr-toast' }, toast) : null,
-        picker ? h(FilePicker, { onClose: () => setPicker(false), onOpen: (target) => openDoc(target), recent, onImport: importFile, onForget: forgetDocument }) : null,
+        picker ? h(FilePicker, { onClose: () => setPicker(false), onOpen: (target) => openDoc(target), recent, onForget: forgetDocument }) : null,
         !doc && loadError ? h('div', { className: 'pdfr-toast pdfr-toast-error' }, loadError) : null,
       )
     }
@@ -3637,20 +3546,12 @@ window.__ModuleLoader__.load({
 .pdfr-modal{width:min(560px,92vw);max-height:min(620px,86vh);display:flex;flex-direction:column;border-radius:12px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-overlay);box-shadow:0 24px 70px rgba(0,0,0,.35);overflow:hidden}
 .pdfr-modal-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px}
 .pdfr-modal-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary)}
-.pdfr-modal-path{display:flex;align-items:center;gap:8px;padding:0 12px 8px}
-.pdfr-path-text{flex:1;min-width:0;font-size:11.5px;color:var(--dsw-alias-label-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
 .pdfr-modal-list{flex:1;min-height:120px;overflow:auto;padding:2px 6px;border-top:1px solid var(--dsw-alias-border-l1);border-bottom:1px solid var(--dsw-alias-border-l1)}
-.pdfr-row{display:flex;align-items:center;gap:9px;width:100%;padding:7px 8px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12.5px;cursor:pointer;text-align:left}
-.pdfr-row:hover{background:var(--dsw-alias-bg-layer-2)}
-.pdfr-row-icon{display:flex;color:var(--dsw-alias-label-secondary);flex:none}
-.pdfr-row-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pdfr-row-meta{font-size:11px;color:var(--dsw-alias-label-secondary);flex:none}
-.pdfr-row-file .pdfr-row-icon{color:var(--dsw-alias-brand-primary)}
 .pdfr-recent{margin-top:6px;padding:4px 0 8px}
 .pdfr-modal-foot{display:flex;align-items:center;gap:8px;padding:10px 12px}
+.pdfr-modal-actions{justify-content:flex-end}
 .pdfr-input{flex:1;min-width:0;height:30px;padding:0 9px;border:1px solid var(--dsw-alias-border-l1);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;outline:none}
 .pdfr-input:focus{border-color:var(--dsw-alias-brand-primary)}
-.pdfr-upload{cursor:pointer}
 @media (max-width: 860px){.pdfr-doc-title{max-width:26vw}}
 .pdfr-crash{align-items:center;justify-content:center;gap:8px;padding:40px;text-align:center}
 .pdfr-crash h2{margin:0;font-size:15px;font-weight:600}
